@@ -1,0 +1,35 @@
+db:
+  host: mongodb
+  port: 27017
+  database: inf_search
+  collection: documents
+
+logic:
+  delay_between_requests: 0.5
+  user_agent: "InfSearchBot/1.0"
+  request_timeout: 10
+  recheck_interval_days: 7
+  max_pages_per_source: 60000
+
+sources:
+  isgeotar:
+    name: "lsgeotar"
+    base_url: "https://www.lsgeotar.ru"
+    start_url: "https://www.lsgeotar.ru/drugs?page=1&pageSize=200"
+    parser: "isgeotar"
+    max_pages: 30000
+
+  rlsnet:
+    name: "rlsnet"
+    base_url: "https://www.rlsnet.ru"
+    start_url: "https://www.rlsnet.ru/sitemap.xml"
+    parser: "rlsnet"
+    max_pages: 100000
+
+  
+
+  
+
+  
+
+  

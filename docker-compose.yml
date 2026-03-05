@@ -1,0 +1,73 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: inf_search_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: inf_search
+    networks:
+      - inf_search_network
+    restart: unless-stopped
+    command: mongod --quiet --logpath /dev/null
+
+  mongo-express:
+    image: mongo-express:1.0.2-18-alpine3.18
+    container_name: mongo_express
+    depends_on:
+      - mongodb
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+      ME_CONFIG_SITE_BASEURL: /
+      ME_CONFIG_OPTIONS_EDITORTHEME: ambiance
+      WAIT_FOR_MONGODB: "false"
+    networks:
+      - inf_search_network
+    restart: unless-stopped
+
+  crawler:
+    build: .
+    container_name: inf_search_crawler
+    depends_on:
+      - mongodb
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MONGODB_HOST: mongodb
+    networks:
+      - inf_search_network
+    command: ["python", "search_robot/main.py", "crawl", "config/config.yaml"]
+    restart: unless-stopped
+
+  crawler_stats:
+    build: .
+    container_name: inf_search_crawler_stats
+    depends_on:
+      - mongodb
+    volumes:
+      - ./config:/app/config
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MONGODB_HOST: mongodb
+    networks:
+      - inf_search_network
+    command: ["python", "search_robot/main.py", "stats", "config/config.yaml"]
+
+networks:
+  inf_search_network:
+    driver: bridge
+    name: inf_search_network
+
+volumes:
+  mongodb_data:
+    name: inf_search_mongodb_data
